@@ -1,0 +1,7 @@
+build
+install
+log
+.vscode
+src/tp3/tp3/__pycache__
+src/tp3/launch/__pycache__
+src/tp3/tp3/plots/__pycache__
