@@ -97,14 +97,7 @@ class Ransac(Node):
 
         self.pub_matriz.publish(matriz_msg)
 
-        self.get_logger().info(
-            f'Matches originales: {len(msg.keypoints_left)} - '
-            f'Inliers: {len(indices_inliers)}'
-        )
 
-        self.get_logger().info(
-            f'\nMatriz fundamental:\n{F}'
-        )
 
 
 def main(args=None):

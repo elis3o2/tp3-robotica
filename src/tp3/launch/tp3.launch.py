@@ -86,4 +86,22 @@ def generate_launch_description():
             name='triangulation',
             output='screen'
         ),
+        Node(
+            package='tp3',
+            executable='disparity',
+            name='disparity',
+            output='screen'
+        ),
+        Node(
+            package='tp3',
+            executable='stereo-pose',
+            name='stereo_pose',
+            output='screen'
+        ),        
+        Node(
+            package='tp3',
+            executable='dense-reconstruction',
+            name='dense_reconstruction',
+            output='screen'
+        ),
     ])
