@@ -62,9 +62,7 @@ class DenseMapping(Node):
 
             for fila in reader:
 
-                timestamp = int(
-                    fila['timestamp']
-                )
+                timestamp = int(fila['timestamp)
 
                 posicion = np.array(
                     [
@@ -88,20 +86,11 @@ class DenseMapping(Node):
 
                 rotaciones.append(R)
 
-        self.timestamps_gt = np.array(
-            timestamps,
-            dtype=np.int64
-        )
+        self.timestamps_gt = np.array(timestamps, dtype=np.int64)
 
-        self.posiciones_gt = np.array(
-            posiciones,
-            dtype=np.float64
-        )
+        self.posiciones_gt = np.array(posiciones, dtype=np.float64)
 
-        self.rotaciones_gt = np.array(
-            rotaciones,
-            dtype=np.float64
-        )
+        self.rotaciones_gt = np.array(rotaciones, dtype=np.float64)
 
 
     def timestamp_ns(self, stamp):
@@ -111,103 +100,55 @@ class DenseMapping(Node):
 
     def buscar_pose(self, timestamp):
 
-        indice = np.searchsorted(
-            self.timestamps_gt,
-            timestamp
-        )
+        indice = np.searchsorted(self.timestamps_gt, timestamp)
 
         if indice == 0:
 
             indice_mejor = 0
 
-        elif indice >= len(
-            self.timestamps_gt
-        ):
+        elif indice >= len(self.timestamps_gt):
 
-            indice_mejor = (
-                len(self.timestamps_gt) - 1
-            )
+            indice_mejor = len(self.timestamps_gt) - 1
 
         else:
 
             anterior = indice - 1
             siguiente = indice
 
-            diferencia_anterior = abs(
-                int(
-                    self.timestamps_gt[
-                        anterior
-                    ]
-                ) - timestamp
-            )
+            diferencia_anterior = abs(int(self.timestamps_gt[anterior]) - timestamp)
 
-            diferencia_siguiente = abs(
-                int(
-                    self.timestamps_gt[
-                        siguiente
-                    ]
-                ) - timestamp
-            )
+            diferencia_siguiente = abs(int(self.timestamps_gt[siguiente]) - timestamp)
 
-            if (
-                diferencia_anterior
-                <= diferencia_siguiente
-            ):
+            if diferencia_anterior <= diferencia_siguiente:
                 indice_mejor = anterior
 
             else:
                 indice_mejor = siguiente
 
-        posicion = self.posiciones_gt[
-            indice_mejor
-        ]
+        posicion = self.posiciones_gt[indice_mejor]
 
-        rotacion = self.rotaciones_gt[
-            indice_mejor
-        ]
+        rotacion = self.rotaciones_gt[indice_mejor]
 
-        timestamp_gt = int(
-            self.timestamps_gt[
-                indice_mejor
-            ]
-        )
+        timestamp_gt = int(self.timestamps_gt[indice_mejor])
 
-        diferencia_ms = abs(
-            timestamp_gt - timestamp
-        ) / 1e6
+        diferencia_ms = abs(timestamp_gt - timestamp) / 1e6
 
-        return (
-            posicion,
-            rotacion,
-            diferencia_ms
-        )
+        return (posicion, rotacion, diferencia_ms)
 
 
-    def procesar_nube(
-        self,
-        msg: PointCloud2
-    ):
+    def procesar_nube(self, msg: PointCloud2):
 
         if msg.width == 0:
             return
 
-        timestamp = self.timestamp_ns(
-            msg.header.stamp
-        )
+        timestamp = self.timestamp_ns(msg.header.stamp)
 
-        if (
-            self.timestamp_anterior is not None
-            and timestamp < self.timestamp_anterior
-        ):
+        if self.timestamp_anterior is not None and timestamp < self.timestamp_anterior:
             self.puntos_mapa = []
 
         self.timestamp_anterior = timestamp
 
-        posicion, rotacion, diferencia_ms = (
-            self.buscar_pose(
-                timestamp
-            )
-        )
+        posicion, rotacion, diferencia_ms = self.buscar_pose(timestamp)
 
         puntos = point_cloud2.read_points(
             msg,
@@ -224,54 +165,25 @@ class DenseMapping(Node):
 
         for punto in puntos:
 
-            x = float(
-                punto[0]
-            )
+            x = float(punto[0])
+            y = float(punto[1])
+            z = float(punto[2])
+            rgb = int(punto[3])
+            punto_camara = np.array([ x, y, z ], dtype=np.float64)
 
-            y = float(
-                punto[1]
-            )
+            punto_mundo = rotacion @ punto_camara + posicion
 
-            z = float(
-                punto[2]
-            )
-
-            rgb = int(
-                punto[3]
-            )
-
-            punto_camara = np.array(
-                [
-                    x,
-                    y,
-                    z
-                ],
-                dtype=np.float64
-            )
-
-            punto_mundo = (
-                rotacion @ punto_camara
-                + posicion
-            )
 
             nuevos_puntos.append(
                 [
-                    float(
-                        punto_mundo[0]
-                    ),
-                    float(
-                        punto_mundo[1]
-                    ),
-                    float(
-                        punto_mundo[2]
-                    ),
+                    float(punto_mundo[0]),
+                    float(punto_mundo[1]),
+                    float(punto_mundo[2]),
                     rgb
                 ]
             )
 
-        self.puntos_mapa.extend(
-            nuevos_puntos
-        )
+        self.puntos_mapa.extend(nuevos_puntos)
 
 
         self.publicar_mapa(
@@ -279,14 +191,9 @@ class DenseMapping(Node):
         )
 
 
-    def publicar_mapa(
-        self,
-        stamp
-    ):
+    def publicar_mapa(self, stamp):
 
-        if len(
-            self.puntos_mapa
-        ) == 0:
+        if len(self.puntos_mapa) == 0:
             return
 
         fields = [
