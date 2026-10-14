@@ -94,8 +94,8 @@ def generate_launch_description():
         ),
         Node(
             package='tp3',
-            executable='stereo-pose',
-            name='stereo_pose',
+            executable='pose',
+            name='pose',
             output='screen'
         ),        
         Node(
@@ -103,5 +103,5 @@ def generate_launch_description():
             executable='dense-reconstruction',
             name='dense_reconstruction',
             output='screen'
-        ),
+        )
     ])

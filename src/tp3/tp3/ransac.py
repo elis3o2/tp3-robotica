@@ -93,7 +93,7 @@ class Ransac(Node):
 
         matriz_msg.header = msg.header
 
-        matriz_msg.matriz_f = (F.flatten().tolist())
+        matriz_msg.matriz = (F.flatten().tolist())
 
         self.pub_matriz.publish(matriz_msg)
 

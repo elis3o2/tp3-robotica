@@ -13,10 +13,10 @@ from message_filters import Subscriber, ApproximateTimeSynchronizer
 from tp3_interfaces.msg import FeatureSet
 
 
-class VisualOdometry(Node):
+class PlotCam0Path(Node):
 
     def __init__(self):
-        super().__init__('visual_odometry')
+        super().__init__('cam0_path')
 
         self.k = None
 
@@ -74,7 +74,7 @@ class VisualOdometry(Node):
         )
 
         self.get_logger().info(
-            'Visual odometry iniciado'
+            'Plot cam0-path iniciado'
         )
 
 
@@ -121,11 +121,8 @@ class VisualOdometry(Node):
         if self.k is None:
             return
 
-        descriptors_actual = (
-            self.reconstruir_descriptores(
-                features_msg
-            )
-        )
+        descriptors_actual = self.reconstruir_descriptores(features_msg)
+        
 
         if descriptors_actual is None:
             return
@@ -139,14 +136,11 @@ class VisualOdometry(Node):
         # Primer frame: solamente guardarlo
         if self.descriptors_anterior is None:
 
-            self.keypoints_anterior = (
-                features_msg.keypoints
-            )
+            self.keypoints_anterior = features_msg.keypoints
+            
 
-            self.descriptors_anterior = (
-                descriptors_actual
-            )
-
+            self.descriptors_anterior = descriptors_actual
+            
             self.gt_anterior = gt_actual
 
             return
@@ -224,9 +218,7 @@ class VisualOdometry(Node):
         #
         # La posición de la cámara actual
         # vista desde la cámara anterior es:
-        desplazamiento = (
-            -R.T @ t
-        ).flatten()
+        desplazamiento = (-R.T @ t).flatten()
 
         desplazamiento *= escala
 
@@ -269,14 +261,6 @@ class VisualOdometry(Node):
             trayectoria[:, 2]
         )
 
-        # Posición actual
-        self.ax.scatter(
-            trayectoria[-1, 0],
-            trayectoria[-1, 1],
-            trayectoria[-1, 2],
-            s=40
-        )
-
         self.ax.set_xlabel('X [m]')
         self.ax.set_ylabel('Y [m]')
         self.ax.set_zlabel('Z [m]')
@@ -285,16 +269,23 @@ class VisualOdometry(Node):
             'Trayectoria estimada cámara izquierda'
         )
 
-        self.fig.canvas.draw_idle()
+        self.ax.set_xlim(-5, 5)
+        self.ax.set_ylim(-5, 5)
+        self.ax.set_zlim(-2, 5)
 
-        plt.pause(0.001)
+        self.ax.set_box_aspect([1, 1, 1])
+
+        self.ax.view_init(
+            elev=25,
+            azim=45
+        )
 
 
 def main(args=None):
 
     rclpy.init(args=args)
 
-    node = VisualOdometry()
+    node = PlotCam0Path()
 
     try:
         rclpy.spin(node)
@@ -302,12 +293,13 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
 
+    node.graficar()
+
+    plt.ioff()
+    plt.show()
+
     node.destroy_node()
-
-    plt.close('all')
-
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()

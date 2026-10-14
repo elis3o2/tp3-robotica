@@ -66,7 +66,15 @@ def main(args=None):
     node = PlotDisparity()
 
     try:
-        rclpy.spin(node)
+
+        while rclpy.ok():
+
+            rclpy.spin_once(
+                node,
+                timeout_sec=0.01
+            )
+
+            cv2.waitKey(1)
 
     except KeyboardInterrupt:
         pass

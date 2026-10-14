@@ -11,10 +11,10 @@ from message_filters import Subscriber, TimeSynchronizer
 from tp3_interfaces.msg import FeatureSet
 
 
-class PlotFeatures(Node):
+class ViewFeatures(Node):
 
     def __init__(self):
-        super().__init__('plot_features')
+        super().__init__('view_features')
 
         self.bridge = CvBridge()
 
@@ -67,43 +67,25 @@ class PlotFeatures(Node):
             x = int(round(punto.x))
             y = int(round(punto.y))
 
-            cv2.circle(
-                imagen,
-                (x, y),
-                3,
-                (0, 255, 0),
-                -1
-            )
+            cv2.circle(imagen, (x, y), 3, (0, 255, 0), -1)
 
         return imagen
 
 
     def procesar_left(self, image_msg, features_msg):
 
-        imagen = self.dibujar_features(
-            image_msg,
-            features_msg
-        )
+        imagen = self.dibujar_features(image_msg, features_msg)
 
-        cv2.imshow(
-            'Features izquierda',
-            imagen
-        )
+        cv2.imshow('Features izquierda', imagen)
 
         cv2.waitKey(1)
 
 
     def procesar_right(self, image_msg, features_msg):
 
-        imagen = self.dibujar_features(
-            image_msg,
-            features_msg
-        )
+        imagen = self.dibujar_features(image_msg, features_msg)
 
-        cv2.imshow(
-            'Features derecha',
-            imagen
-        )
+        cv2.imshow('Features derecha', imagen)
 
         cv2.waitKey(1)
 
@@ -112,10 +94,18 @@ def main(args=None):
 
     rclpy.init(args=args)
 
-    node = PlotFeatures()
+    node = ViewFeatures()
 
     try:
-        rclpy.spin(node)
+
+        while rclpy.ok():
+
+            rclpy.spin_once(
+                node,
+                timeout_sec=0.01
+            )
+
+            cv2.waitKey(1)
 
     except KeyboardInterrupt:
         pass

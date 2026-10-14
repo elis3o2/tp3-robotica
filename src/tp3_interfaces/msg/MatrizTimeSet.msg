@@ -1,2 +1,2 @@
 std_msgs/Header header
-float64[9] matriz_f
+float64[9] matriz

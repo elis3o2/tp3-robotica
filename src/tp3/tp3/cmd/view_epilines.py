@@ -12,10 +12,10 @@ from message_filters import Subscriber, TimeSynchronizer
 from tp3_interfaces.msg import MatchingSet, MatrizTimeSet
 
 
-class PlotEpilines(Node):
+class ViewEpilines(Node):
 
     def __init__(self):
-        super().__init__('plot_epilines')
+        super().__init__('view_epilines')
 
         self.bridge = CvBridge()
 
@@ -55,7 +55,7 @@ class PlotEpilines(Node):
 
         # Reconstruir matriz fundamental
         F = np.array(
-            matriz_msg.matriz_f,
+            matriz_msg.matriz,
             dtype=np.float64
         ).reshape(3, 3)
 
@@ -115,10 +115,18 @@ def main(args=None):
 
     rclpy.init(args=args)
 
-    node = PlotEpilines()
+    node = ViewEpilines()
 
     try:
-        rclpy.spin(node)
+
+        while rclpy.ok():
+
+            rclpy.spin_once(
+                node,
+                timeout_sec=0.01
+            )
+
+            cv2.waitKey(1)
 
     except KeyboardInterrupt:
         pass

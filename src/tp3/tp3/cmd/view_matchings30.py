@@ -11,10 +11,10 @@ from message_filters import Subscriber, ApproximateTimeSynchronizer
 from tp3_interfaces.msg import MatchingSet
 
 
-class PlotMatchings(Node):
+class ViewMatchings(Node):
 
     def __init__(self):
-        super().__init__('plot_matchings')
+        super().__init__('view_matchings')
 
         self.bridge = CvBridge()
 
@@ -27,15 +27,13 @@ class PlotMatchings(Node):
         )
 
         self.sub_matchings = Subscriber(
-            self, MatchingSet, '/matchings_ransac'
+            self, MatchingSet, '/matchings'
         )
 
         self.sync = ApproximateTimeSynchronizer(
-            [
-                self.sub_image_left,
-                self.sub_image_right,
-                self.sub_matchings
-            ],
+            [ self.sub_image_left,
+            self.sub_image_right,
+            self.sub_matchings],
             queue_size=30,
             slop=0.05
         )
@@ -57,44 +55,33 @@ class PlotMatchings(Node):
             desired_encoding='bgr8'
         )
 
-        # Puntos izquierdos
-        for punto in matchings_msg.keypoints_left:
+        cantidad = 0
 
-            x = int(round(punto.x))
-            y = int(round(punto.y))
+        for punto_left, punto_right, distance in zip(
+            matchings_msg.keypoints_left,
+            matchings_msg.keypoints_right,
+            matchings_msg.distances
+        ):
 
-            cv2.circle(
-                imagen_left,
-                (x, y),
-                3,
-                (0, 255, 0),
-                -1
-            )
+            if distance >= 30:
+                continue
 
-        # Puntos derechos
-        for punto in matchings_msg.keypoints_right:
+            cantidad += 1
 
-            x = int(round(punto.x))
-            y = int(round(punto.y))
+            # Punto izquierdo
+            x_left = int(round(punto_left.x))
+            y_left = int(round(punto_left.y))
 
-            cv2.circle(
-                imagen_right,
-                (x, y),
-                3,
-                (0, 255, 0),
-                -1
-            )
+            cv2.circle(imagen_left, (x_left, y_left), 3, (0, 255, 0), -1)
 
-        # Mostrar por separado
-        cv2.imshow(
-            'Matchings izquierda',
-            imagen_left
-        )
+            # Punto derecho
+            x_right = int(round(punto_right.x))
+            y_right = int(round(punto_right.y))
 
-        cv2.imshow(
-            'Matchings derecha',
-            imagen_right
-        )
+            cv2.circle(imagen_right, (x_right, y_right), 3, (0, 255, 0), -1)
+
+        cv2.imshow('Matchings izquierda < 30', imagen_left)
+        cv2.imshow('Matchings derecha < 30', imagen_right)
 
         cv2.waitKey(1)
 
@@ -103,11 +90,19 @@ def main(args=None):
 
     rclpy.init(args=args)
 
-    node = PlotMatchings()
+    node = ViewMatchings()
 
     try:
-        rclpy.spin(node)
 
+        while rclpy.ok():
+
+            rclpy.spin_once(
+                node,
+                timeout_sec=0.01
+            )
+
+            cv2.waitKey(1)
+            
     except KeyboardInterrupt:
         pass
 

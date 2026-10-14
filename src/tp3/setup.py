@@ -8,13 +8,14 @@ setup(
     version='0.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        ('share/ament_index/resource_index/packages',
-        ['resource/' + package_name]),
+        
+        ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         
         ('share/' + package_name, ['package.xml']),
         
-        ('share/' + package_name + '/launch',
-        glob('launch/*.launch.py')),
+        ('share/' + package_name, ['groundtruth_camera_left.csv']),
+        
+        ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -28,23 +29,28 @@ setup(
         ],
     },
     entry_points={
-        'console_scripts': [
+        'console_scripts': [  
             'features = tp3.features:main',
             'matchings = tp3.matchings:main',
             'ransac = tp3.ransac:main',
             'triangulation = tp3.triangulation:main',
             'disparity = tp3.disparidad:main',
-            'stereo-pose = tp3.stereo_pose:main',
-            'dense-reconstruction = tp3.desnse_reconstruction:main',
-            'plot-features = tp3.plots.plot_features:main',
-            'plot-matchings = tp3.plots.plot_matchings:main',
-            'plot-matchings30 = tp3.plots.plot_matchings30:main',
-            'plot-matchings-ransac = tp3.plots.plot_matchings_ransac:main',
-            'plot-epilines = tp3.plots.plot_epilines:main',
-            'plot-disparity = tp3.plots.plot_disparity:main',
-            'plot-pose = tp3.plots.plot_pose:main',
-            'plot-visual-odometry = tp3.plots.plot_visual_odometry:main',
-            'plot-stereo-pose = tp3.plots.plot_stereo_pose:main',
+            'pose = tp3.pose:main',
+            'dense-reconstruction = tp3.dense_resconstruction:main',
+            'bag-control = tp3.cmd.bag_control:main',
+            'view-cameras = tp3.cmd.view_cameras:main',
+            'view-features = tp3.cmd.view_features:main',
+            'view-matchings = tp3.cmd.view_matchings:main',
+            'view-matchings30 = tp3.cmd.view_matchings30:main',
+            'view-matchings-ransac = tp3.cmd.view_matchings_ransac:main',
+            'view-epilines = tp3.cmd.view_epilines:main',
+            'view-disparity = tp3.cmd.view_disparity:main',
+            'plot-cam0-path = tp3.cmd.plot_cam0_path:main',
+            'plot-cams-pose = tp3.cmd.plot_cams_pose:main',
+            'plot-cam0-pose-PnP = tp3.cmd.plot_cam0_pose_PnP:main',
+            'plot-map = tp3.cmd.plot_map:main',
+            'plot-map-dense = tp3.cmd.plot_map_dense:main',
+
         ],
     },
 )

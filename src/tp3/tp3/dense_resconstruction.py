@@ -8,7 +8,7 @@ from sensor_msgs.msg import Image, CameraInfo, PointCloud2, PointField
 from sensor_msgs_py import point_cloud2
 
 from cv_bridge import CvBridge
-
+from tp3_interfaces.msg import MatrizTimeSet
 from message_filters import Subscriber, TimeSynchronizer
 
 
@@ -32,7 +32,7 @@ class DenseReconstruction(Node):
             CameraInfo, '/right/camera_info', self.procesar_camara_right, 10
         )
 
-        # Imagen izquierda
+        # Imagen izquierda para obtener color
         self.sub_image = Subscriber(
             self, Image, '/left/image_rect'
         )
@@ -57,6 +57,10 @@ class DenseReconstruction(Node):
             PointCloud2, '/dense_points3d', 10
         )
 
+        self.pub_matriz = self.create_publisher(
+            MatrizTimeSet, '/q_matriz', 10
+        )
+        
         self.paso = 2
 
         self.get_logger().info(
@@ -96,32 +100,38 @@ class DenseReconstruction(Node):
 
         cx_right = self.matriz_p_right[0, 2]
 
-        tx = self.matriz_p_right[0, 3] / fx
+        # P_right[0, 3] = fx_right * Tx
+        tx = self.matriz_p_right[0, 3] / self.matriz_p_right[0, 0]
+
+        if tx == 0:
+            self.get_logger().error(
+                'No se puede calcular Q: baseline igual a 0'
+            )
+            return
 
         self.matriz_q = np.array([
-            [1, 0, 0, -cx_left],
-            [0, 1, 0, -cy_left],
-            [0, 0, 0, fx],
-            [0, 0, -1 / tx, (cx_left - cx_right) / tx]
+            [1.0, 0.0, 0.0, -cx_left],
+            [0.0, 1.0, 0.0, -cy_left],
+            [0.0, 0.0, 0.0, fx],
+            [0.0, 0.0, -1.0 / tx, (cx_left - cx_right) / tx]
         ], dtype=np.float64)
 
-        self.get_logger().info(
-            f'Matriz Q calculada:\n{self.q}'
-        )
 
-        # Ya no necesito volver a leer la calibración
         if self.sub_camera_left is not None:
-            self.destroy_subscription(self.sub_camera_left)
+            self.destroy_subscription(
+                self.sub_camera_left
+            )
             self.sub_camera_left = None
 
         if self.sub_camera_right is not None:
-            self.destroy_subscription(self.sub_camera_right)
+            self.destroy_subscription(
+                self.sub_camera_right
+            )
             self.sub_camera_right = None
-
 
     def procesar(self, image_msg: Image, disparity_msg: Image):
 
-        if self.q is None:
+        if self.matriz_q is None:
             return
 
         imagen = self.bridge.imgmsg_to_cv2(
@@ -135,10 +145,7 @@ class DenseReconstruction(Node):
         )
 
         # Reproyectar todos los píxeles al espacio 3D
-        puntos_3d = cv2.reprojectImageTo3D(
-            disparity,
-            self.q
-        )
+        puntos_3d = cv2.reprojectImageTo3D(disparity, self.matriz_q)
 
         puntos = []
 
@@ -154,19 +161,13 @@ class DenseReconstruction(Node):
 
                 X, Y, Z = puntos_3d[y, x]
 
-                if not np.all(
-                    np.isfinite([X, Y, Z])
-                ):
+                if not np.all(np.isfinite([X, Y, Z])):
                     continue
 
                 # OpenCV usa BGR
                 b, g, r = imagen[y, x]
 
-                rgb = (
-                    (int(r) << 16)
-                    | (int(g) << 8)
-                    | int(b)
-                )
+                rgb = ((int(r) << 16) | (int(g) << 8) | int(b))
 
                 puntos.append([
                     float(X),
@@ -209,6 +210,15 @@ class DenseReconstruction(Node):
         )
 
         self.pub.publish(cloud)
+        
+        # Publicar matriz q
+        matriz_msg = MatrizTimeSet()
+
+        matriz_msg.header = image_msg.header
+
+        matriz_msg.matriz = (self.matriz_q.flatten().tolist())
+
+        self.pub_matriz.publish(matriz_msg)
 
 
 def main(args=None):

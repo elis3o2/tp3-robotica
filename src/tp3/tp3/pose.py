@@ -7,15 +7,15 @@ from rclpy.node import Node
 from sensor_msgs.msg import CameraInfo
 from geometry_msgs.msg import TransformStamped
 
-from tp3_interfaces.msg import MatchingSet
+from tp3_interfaces.msg import MatchingSet, MatrizTimeSet
 
 from transforms3d.quaternions import mat2quat
 
 
-class StereoPose(Node):
+class Pose(Node):
 
     def __init__(self):
-        super().__init__('stereo_pose')
+        super().__init__('pose')
 
         self.k = None
         self.baseline = None
@@ -40,9 +40,13 @@ class StereoPose(Node):
 
         # Transformación estimada
         self.pub = self.create_publisher(
-            TransformStamped, '/stereo_transform_estimated', 10
+            TransformStamped, '/transformation_estimated', 10
         )
 
+        self.pub_matriz = self.create_publisher(
+            MatrizTimeSet, '/e_matriz', 10
+        )
+        
         self.get_logger().info(
             'Nodo stereo_pose iniciado'
         )
@@ -163,13 +167,22 @@ class StereoPose(Node):
         self.pub.publish(
             transform
         )
+        
+        # Publicar matriz e
+        matriz_msg = MatrizTimeSet()
+
+        matriz_msg.header = msg.header
+
+        matriz_msg.matriz = (E.flatten().tolist())
+
+        self.pub_matriz.publish(matriz_msg)
 
 
 def main(args=None):
 
     rclpy.init(args=args)
 
-    node = StereoPose()
+    node = Pose()
 
     try:
         rclpy.spin(node)

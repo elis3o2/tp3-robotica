@@ -92,19 +92,13 @@ class MatchingExtractor(Node):
         for match in matches:
 
             # Punto izquierdo correspondiente al descriptor queryIdx
-            msg.keypoints_left.append(
-                msg_left.keypoints[match.queryIdx]
-            )
+            msg.keypoints_left.append(msg_left.keypoints[match.queryIdx])
 
             # Punto derecho correspondiente al descriptor trainIdx
-            msg.keypoints_right.append(
-                msg_right.keypoints[match.trainIdx]
-            )
+            msg.keypoints_right.append(msg_right.keypoints[match.trainIdx])
 
             # Distancia del match
-            msg.distances.append(
-                float(match.distance)
-            )
+            msg.distances.append(float(match.distance))
 
         self.pub.publish(msg)
 
