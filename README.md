@@ -188,7 +188,7 @@ Cada vez que se abre una nueva terminal se debe cargar ROS 2 y el workspace:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-source ~/Facultad/Robotica/tp3_ws/install/setup.bash
+source install/setup.bash
 ```
 
 ---
