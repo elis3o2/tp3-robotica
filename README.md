@@ -119,7 +119,7 @@ ros2 run tp3 view-disparity
 ```bash
 ros2 run tp3 plot-cams-pose
 ros2 run tp3 plot-cam0-path
-ros2 run tp3 plot-cam0-path-PnP
+ros2 run tp3 plot-cam0-pose-PnP
 ```
 
 - `plot-cams-pose`: visualiza la pose relativa estimada entre la cámara izquierda y la cámara derecha.

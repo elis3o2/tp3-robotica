@@ -21,7 +21,7 @@ class Disparity(Node):
         self.stereo = cv2.StereoSGBM_create(
             minDisparity=0,
             numDisparities=128,
-            blockSize=5
+            blockSize=15
         )
 
         # Imagen izquierda

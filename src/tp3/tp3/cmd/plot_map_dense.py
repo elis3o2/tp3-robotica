@@ -62,7 +62,7 @@ class DenseMapping(Node):
 
             for fila in reader:
 
-                timestamp = int(fila['timestamp)
+                timestamp = int(fila['timestamp'])
 
                 posicion = np.array(
                     [
